@@ -36,7 +36,6 @@ public class Client {
         this.serverPort = port;
     }
 
-
     public static void main(String[] args) throws IOException {
         BasicConfigurator.configure();
         if (args.length < 2) {
