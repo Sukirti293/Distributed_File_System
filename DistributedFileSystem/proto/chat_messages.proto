@@ -1,0 +1,241 @@
+syntax = "proto3";
+option java_package = "edu.usfca.cs.chat";
+
+/* Regular chat message with username + message */
+message ChatMessage {
+    string username = 1;
+    string messageBody = 2;
+}
+
+/* Direct message to a specific host */
+message PrivateMessage {
+    string destinationHost = 1;
+    int32 destinationPort = 2;
+    ChatMessage messageContents = 3;
+}
+
+/* Broadcast control messages to everyone from the system */
+message AdminMessage {
+    string messageBody = 1;
+}
+
+message Registration {
+    string username = 1;
+}
+
+
+
+// Client to SN
+// SN to SN
+// SN to Client
+message StoreChunk {
+    string fileName = 1;
+    int32 sequenceNo = 2;
+    string checksum = 3;
+    bytes data = 4;
+}
+
+// Client to SN
+message DownloadChunk {
+    string filename = 1;
+    int32 sequenceNo = 2;
+}
+
+// Client to Controller
+message DownloadFile {
+    string fileName = 1;
+}
+
+// Used as data structure
+message FileChunk {
+    string filename = 1;
+    int32 sequenceNo = 2;
+}
+
+// Used as data structure
+message FileChunks {
+    string filename = 1;
+    repeated int32 sequenceNos = 2;
+}
+
+// SN to Controller
+message Heartbeat {
+    string storageNodeHost = 1;
+    int32 storageNodePort = 2;
+
+    repeated FileChunks fileChunks = 3;
+}
+
+// Controller to SN
+message HeartbeatAck {
+
+}
+
+// Client to Controller
+message GetStorageNodesRequest {
+    string storageNodeRequestMessage = 1;
+}
+
+// Used as data structure
+message StorageNode {
+    string host = 1;
+    int32 port = 2;
+}
+
+//to send response back to the client
+message StoreChunkMsgResponse{
+    int32 sequenceNos = 1;
+    StorageNode storageNode = 2;
+}
+
+// Controller to Client
+message GetStorageNodesResponse {
+    repeated StorageNode nodes = 4;
+}
+
+// Controller orders one storage node to send a chunk to another storage node
+message OrderSendChunk {
+    StorageNode storageNode = 1;
+    FileChunk fileChunk = 2;
+}
+
+//missing SeqNo
+message MissingSeqNo{
+    string filename = 1;
+    repeated int32 sequenceNo = 2;
+}
+
+message MissingSeqNoResponse{
+    repeated StoreChunk storeChunk = 1;
+}
+
+// Controller to Client
+message DownloadFileResponse {
+    string filename = 1;
+    message ChunkLocation {
+        int32 sequenceNo = 1;
+        repeated StorageNode storageNodes = 2;
+    }
+    repeated ChunkLocation chunkLocations = 2;
+}
+
+// Client, Controller, Storage Node to anybody
+message Error {
+    string text = 1;
+}
+
+// Client to Controller
+message GetFilesRequest {
+
+}
+
+// Controller to Client
+message GetFilesResponse {
+    repeated DownloadFileResponse files = 1;
+}
+
+// Controller to Storage Node
+message GetStorageNodeFilesRequest {
+
+}
+
+// Storage Node to Controller
+message GetStorageNodeFilesResponse {
+    repeated FileChunks files = 1;
+}
+
+// Client to Controller
+// AND
+// Controller to Storage Node
+message GetFreeSpaceRequest {
+
+}
+
+// Controller to Client
+// AND
+// Storage Node to Controller
+message GetFreeSpaceResponse {
+    int64 freeSpace = 1;
+    int64 totalSpace = 2;
+}
+
+// Storage Node to Controller
+message ChunkCorrupted {
+    string filename = 1;
+    int32 sequenceNo = 2;
+    StorageNode storageNode = 3;
+}
+
+
+message ReaddirRequest {
+    string path = 1;
+}
+
+message ReaddirResponse {
+    int32 status = 1;
+    repeated string contents = 2;
+}
+
+message GetattrRequest {
+    string path = 1;
+}
+
+message GetattrResponse {
+    int32 status = 1;
+    int32 mode = 2;
+    int64 size = 3;
+}
+
+message OpenRequest {
+    string path = 1;
+}
+
+message OpenResponse {
+    int32 status = 1;
+}
+
+message ReadRequest {
+    string path = 1;
+    int64 size = 2;
+    int64 offset = 3;
+}
+
+message ReadResponse {
+    int32 status = 1;
+    bytes contents = 2;
+}
+
+message MessageWrapper {
+    oneof msg {
+        StoreChunk storeChunkMsgRequest = 1;
+        StoreChunk storeChunkMsgResponse = 19;
+        StoreChunkMsgResponse storeChunkMsgRes = 20;
+        DownloadChunk downloadChunkMsg = 2;
+        DownloadFile downloadFileMsg = 3;
+        // = 4 unused
+        Heartbeat heartbeatMsg = 5;
+        GetStorageNodesRequest getStoragesNodesRequestMsg = 6;
+        GetStorageNodesResponse getStorageNodesResponseMsg = 7;
+        OrderSendChunk orderSendChunkMsg = 8;
+        DownloadFileResponse downloadFileResponseMsg = 9;
+        Error errorMsg = 10;
+        GetFilesRequest getFilesRequestMsg = 11;
+        GetFilesResponse getFilesResponseMsg = 12;
+        GetFreeSpaceRequest getFreeSpaceRequestMsg = 13;
+        GetFreeSpaceResponse getFreeSpaceResponseMsg = 14;
+        ChunkCorrupted chunkCorruptedMsg = 15;
+        GetStorageNodeFilesRequest getStorageNodeFilesRequest = 16;
+        GetStorageNodeFilesResponse getStorageNodeFilesResponse = 17;
+        HeartbeatAck heartbeatAckMsg = 18;
+        MissingSeqNo getMissingSeqNo =21;
+        MissingSeqNoResponse getMissingSeqNoResponse =22;
+        ReaddirRequest  readdir_req  = 23;
+        ReaddirResponse readdir_resp = 24;
+        GetattrRequest  getattr_req  = 25;
+        GetattrResponse getattr_resp = 26;
+        OpenRequest     open_req     = 27;
+        OpenResponse    open_resp    = 28;
+        ReadRequest     read_req     = 29;
+        ReadResponse    read_resp    = 30;
+    }
+}
